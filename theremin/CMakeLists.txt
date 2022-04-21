@@ -1,3 +1,5 @@
+include(CopyLeapLibrary)
+
 juce_add_gui_app(Theremin
         VERSION 0.0.1
         PRODUCT_NAME "Theremin")
@@ -24,12 +26,4 @@ target_link_libraries(Theremin
         juce::juce_recommended_lto_flags
         juce::juce_recommended_warning_flags)
 
-
-add_custom_command(
-        TARGET
-        Theremin
-        POST_BUILD
-        COMMAND
-        ${CMAKE_COMMAND} -E copy
-        ${LEAPC_SHARED_LIB_PATH}
-        $<TARGET_FILE_DIR:Theremin>)
+copy_leap_library(Theremin)
