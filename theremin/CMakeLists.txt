@@ -17,7 +17,7 @@ target_compile_definitions(Theremin
 
 target_link_libraries(Theremin
         PRIVATE
-        LeapSDK::LeapC
+        LeapCpp
         juce::juce_gui_extra
         PUBLIC
         juce::juce_recommended_config_flags

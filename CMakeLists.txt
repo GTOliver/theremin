@@ -23,4 +23,5 @@ get_target_property(
 )
 
 add_subdirectory(dependencies)
+add_subdirectory(libleapcpp)
 add_subdirectory(theremin)
