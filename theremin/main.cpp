@@ -1,9 +1,7 @@
 #include "MainComponent.h"
 
-class GuiAppApplication : public juce::JUCEApplication {
+class ThereminApp : public juce::JUCEApplication {
 public:
-    GuiAppApplication() {}
-
     const juce::String getApplicationName() override { return JUCE_APPLICATION_NAME_STRING; }
 
     const juce::String getApplicationVersion() override { return JUCE_APPLICATION_VERSION_STRING; }
@@ -12,12 +10,11 @@ public:
 
     void initialise(const juce::String &commandLine) override {
         juce::ignoreUnused(commandLine);
-
-        mainWindow.reset(new MainWindow(getApplicationName()));
+        main_window_ = std::make_unique<MainWindow>(getApplicationName());
     }
 
     void shutdown() override {
-        mainWindow.reset();
+        main_window_.reset();
     }
 
     void systemRequestedQuit() override {
@@ -30,7 +27,7 @@ public:
 
     class MainWindow : public juce::DocumentWindow {
     public:
-        explicit MainWindow(juce::String name)
+        explicit MainWindow(const juce::String &name)
                 : DocumentWindow(name,
                                  juce::Desktop::getInstance().getDefaultLookAndFeel()
                                          .findColour(ResizableWindow::backgroundColourId),
@@ -57,7 +54,7 @@ public:
     };
 
 private:
-    std::unique_ptr<MainWindow> mainWindow;
+    std::unique_ptr<MainWindow> main_window_;
 };
 
-START_JUCE_APPLICATION (GuiAppApplication)
+START_JUCE_APPLICATION (ThereminApp)
