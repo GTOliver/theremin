@@ -6,12 +6,15 @@ juce_add_gui_app(Theremin
 
 target_sources(Theremin
         PRIVATE
+        CallbackListener.h
         main.cpp
         MainComponent.h
-        MainComponent.cpp)
+        MainComponent.cpp
+        )
 
 target_compile_definitions(Theremin
         PRIVATE
+        JUCE_DISPLAY_SPLASH_SCREEN=0
         JUCE_WEB_BROWSER=0
         JUCE_USE_CURL=0
         JUCE_APPLICATION_NAME_STRING="$<TARGET_PROPERTY:Theremin,JUCE_PRODUCT_NAME>"

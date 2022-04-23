@@ -21,6 +21,7 @@ function(copy_leap_library target_name)
             COMMAND
             ${CMAKE_COMMAND} -E copy
             ${LEAPC_SHARED_LIB_PATH}
-            $<TARGET_FILE_DIR:${target_name}>)
+            $<TARGET_FILE_DIR:${target_name}>
+    )
 
 endfunction()
