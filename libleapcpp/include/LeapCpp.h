@@ -6,7 +6,9 @@
 
 namespace lpp {
 
-    [[nodiscard]] long long get_now();
+    using Timestamp = long long;
+
+    [[nodiscard]] Timestamp get_now();
 
     class Connection {
     public:

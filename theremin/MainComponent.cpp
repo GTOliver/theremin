@@ -5,10 +5,23 @@
 MainComponent::MainComponent()
         : connection_(),
           listener_(std::make_unique<CallbackListener>(
-                  [this](LEAP_CONNECTION_MESSAGE event) { tracking_event_callback(event); })) {
+                  [this](LEAP_CONNECTION_MESSAGE event) { tracking_event_callback(event); })),
+          message_box_(),
+          latest_timestamp_{0} {
     connection_.add_listener(listener_);
     connection_.open();
+
+    addAndMakeVisible(message_box_);
+    message_box_.setMultiLine(true);
+    message_box_.setReturnKeyStartsNewLine(true);
+    message_box_.setReadOnly(true);
+    message_box_.setScrollbarsShown(true);
+    message_box_.setCaretVisible(false);
+    message_box_.setPopupMenuEnabled(true);
+
     setSize(600, 400);
+
+    startTimerHz(30);
 }
 
 MainComponent::~MainComponent() {
@@ -17,23 +30,25 @@ MainComponent::~MainComponent() {
     connection_.remove_listener(listener_);
 }
 
-
-void MainComponent::paint(juce::Graphics &g) {
-    g.fillAll(getLookAndFeel().findColour(juce::ResizableWindow::backgroundColourId));
-
-    g.setFont(juce::Font(16.0f));
-    g.setColour(juce::Colours::white);
-    juce::String my_str;
-    my_str << LeapGetNow() << " " << lpp::get_now();
-    g.drawText(my_str, getLocalBounds(), juce::Justification::centred, true);
-}
-
 void MainComponent::resized() {
+    const auto area = getLocalBounds();
+    message_box_.setBounds(area.reduced(8));
 }
 
-void MainComponent::tracking_event_callback(LEAP_CONNECTION_MESSAGE event) {
-    juce::ignoreUnused(event);
-    juce::String my_str;
-    my_str << "Got event: " << LeapGetNow() << "\n";
-    juce::Logger::getCurrentLogger()->writeToLog(my_str);
+void MainComponent::timerCallback() {
+    auto result = latest_timestamp_.exchange(0);
+    if (result) {
+        juce::String my_str;
+        my_str << result;
+        log_message(my_str);
+    }
+}
+
+void MainComponent::tracking_event_callback([[maybe_unused]] LEAP_CONNECTION_MESSAGE event) {
+    latest_timestamp_.store(lpp::get_now());
+}
+
+void MainComponent::log_message(const juce::String &msg) {
+    message_box_.moveCaretToEnd();
+    message_box_.insertTextAtCaret(msg + juce::newLine);
 }
