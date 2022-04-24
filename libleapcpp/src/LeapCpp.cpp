@@ -4,33 +4,39 @@
 
 #include "ConnectionImpl.h"
 
-namespace lpp {
+namespace lpp
+{
 
-    long long get_now() {
-        return LeapGetNow();
-    }
+long long get_now()
+{
+    return LeapGetNow();
+}
 
-    Connection::Connection()
-            : impl_(std::make_unique<impl>()) {
-    }
+Connection::Connection()
+        : impl_(std::make_unique<impl>())
+{
+}
 
-    Connection::~Connection() = default;
+Connection::~Connection() = default;
 
-    void Connection::open() {
-        impl_->open();
-    }
+void Connection::open()
+{
+    impl_->open();
+}
 
-    void Connection::close() {
-        impl_->close();
-    }
+void Connection::close()
+{
+    impl_->close();
+}
 
-    void Connection::add_listener(ListenerPtr listener) {
-        impl_->add_listener(std::move(listener));
-    }
+void Connection::add_listener(ListenerPtr listener)
+{
+    impl_->add_listener(std::move(listener));
+}
 
-    void Connection::remove_listener(const ListenerPtr &listener) {
-        impl_->remove_listener(listener);
-    }
-
+void Connection::remove_listener(const ListenerPtr& listener)
+{
+    impl_->remove_listener(listener);
+}
 
 } // namespace lpp

@@ -4,10 +4,11 @@
 
 #include <juce_gui_extra/juce_gui_extra.h>
 
-#include "LeapCpp.h"
 #include "CallbackListener.h"
+#include "LeapCpp.h"
 
-class MainComponent : public juce::Component, private juce::Timer {
+class MainComponent: public juce::Component, private juce::Timer
+{
 public:
     MainComponent();
 
@@ -19,7 +20,7 @@ public:
 
     void tracking_event_callback(LEAP_CONNECTION_MESSAGE event);
 
-    void log_message(const juce::String &msg);
+    void log_message(const juce::String& msg);
 
 private:
     lpp::Connection connection_;
@@ -30,5 +31,5 @@ private:
     std::atomic<lpp::Timestamp> latest_timestamp_;
     static_assert(decltype(latest_timestamp_)::is_always_lock_free);
 
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainComponent)
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MainComponent)
 };
