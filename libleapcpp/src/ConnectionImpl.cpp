@@ -45,11 +45,13 @@ void Connection::impl::close()
 
 void Connection::impl::add_listener(ListenerPtr listener)
 {
+    std::scoped_lock lock(listeners_mtx_);
     listeners_.push_back(std::move(listener));
 }
 
 void Connection::impl::remove_listener(const ListenerPtr& listener)
 {
+    std::scoped_lock lock(listeners_mtx_);
     const auto new_end = std::remove(listeners_.begin(), listeners_.end(), listener);
     listeners_.erase(new_end, listeners_.end());
 }
@@ -59,11 +61,18 @@ void Connection::impl::poll_loop()
     LEAP_CONNECTION_MESSAGE event;
     while (stop_flag_.test_and_set()) {
         auto result = LeapPollConnection(connection_, 1000, &event);
-        if (result == eLeapRS_Success) {
-            for (auto& listener: listeners_) {
-                listener->on_event(event);
+        {
+            std::scoped_lock lock(listeners_mtx_);
+            if (result == eLeapRS_Success) {
+                for (auto& listener: listeners_) {
+                    listener->on_event(event);
+                }
+            } else {
+                for (auto& listener: listeners_) {
+                    listener->on_error(result);
+                }
             }
-        }
+        } // lock
     }
 }
 

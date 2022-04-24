@@ -4,6 +4,7 @@
 #include "LeapCpp.h"
 
 #include <atomic>
+#include <mutex>
 #include <thread>
 #include <vector>
 
@@ -38,6 +39,7 @@ private:
     LEAP_CONNECTION connection_;
 
     std::vector<ListenerPtr> listeners_;
+    std::mutex listeners_mtx_;
 
     std::unique_ptr<std::thread> polling_thread_;
     std::atomic_flag stop_flag_;
