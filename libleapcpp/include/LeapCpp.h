@@ -4,10 +4,12 @@
 
 #include <memory>
 
+#include <cstdint>
+
 namespace lpp
 {
 
-using Timestamp = long long;
+using Timestamp = int64_t;
 
 [[nodiscard]] Timestamp get_now();
 
