@@ -10,6 +10,10 @@ target_sources(Theremin
         main.cpp
         MainComponent.h
         MainComponent.cpp
+        LevelCalculator.h
+        LevelCalculator.cpp
+        PhaseChangeCalculator.h
+        PhaseChangeCalculator.cpp
         )
 
 target_compile_definitions(Theremin
@@ -23,6 +27,7 @@ target_compile_definitions(Theremin
 target_link_libraries(Theremin
         PRIVATE
         LeapCpp
+        juce::juce_audio_utils
         juce::juce_gui_extra
         PUBLIC
         juce::juce_recommended_config_flags
