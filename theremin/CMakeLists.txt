@@ -6,14 +6,23 @@ juce_add_gui_app(Theremin
 
 target_sources(Theremin
         PRIVATE
-        CallbackListener.h
         main.cpp
+        AudioProcessor.h
+        AudioProcessor.cpp
+        CallbackListener.h
         MainComponent.h
         MainComponent.cpp
         LevelCalculator.h
         LevelCalculator.cpp
-        PhaseChangeCalculator.h
-        PhaseChangeCalculator.cpp
+        MessageQueue.h
+        MessageQueue.cpp
+        TrackingFrame.h
+        HandTracker.h
+        HandTracker.cpp
+        FrameProcessor.h
+        FrameProcessor.cpp
+        FrequencyCalculator.h
+        FrequencyCalculator.cpp
         )
 
 target_compile_definitions(Theremin
@@ -27,6 +36,7 @@ target_compile_definitions(Theremin
 target_link_libraries(Theremin
         PRIVATE
         LeapCpp
+        readerwriterqueue
         juce::juce_audio_utils
         juce::juce_gui_extra
         PUBLIC
