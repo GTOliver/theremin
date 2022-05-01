@@ -17,11 +17,6 @@ using Timestamp = int64_t;
 
 [[nodiscard]] const char* get_error_message(eLeapRS error);
 
-[[nodiscard]] static std::string get_error_string(eLeapRS error)
-{
-    return {get_error_message(error)};
-}
-
 class Exception: public std::exception
 {
 public:

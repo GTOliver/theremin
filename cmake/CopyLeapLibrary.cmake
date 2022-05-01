@@ -1,6 +1,7 @@
 function(copy_leap_library target_name)
     # Copy the Leap shared library to the target's output directory
     # Useful for being able to run executables in the build folder
+    message(STATUS "copying leap library")
 
     get_target_property(
             LEAPC_IMPORTED_CONFIG
