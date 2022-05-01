@@ -19,10 +19,21 @@ MainComponent::MainComponent()
     message_box_.setCaretVisible(false);
     message_box_.setPopupMenuEnabled(true);
 
+    addAndMakeVisible(level_label_);
+    level_label_.setText("Level", juce::dontSendNotification);
+
+    addAndMakeVisible(level_slider_);
+    level_slider_.setRange(0.0, 0.2);
+
+    addAndMakeVisible(frequency_label_);
+    frequency_label_.setText("Frequency", juce::dontSendNotification);
+
+    addAndMakeVisible(frequency_slider_);
+    frequency_slider_.setRange(500.0, 2000.0);
+
     setSize(600, 400);
 
     setAudioChannels(0, 2);
-
     startTimerHz(30);
 }
 
@@ -34,8 +45,16 @@ MainComponent::~MainComponent()
 
 void MainComponent::resized()
 {
-    const auto area = getLocalBounds();
-    message_box_.setBounds(area.reduced(8));
+    auto half_width = getWidth() / 2;
+
+    auto slider_bounds = getLocalBounds().withWidth(half_width).reduced(10);
+
+    level_label_.setBounds(slider_bounds.getX(), 10, slider_bounds.getWidth(), 20);
+    level_slider_.setBounds(slider_bounds.getX(), 40, slider_bounds.getWidth(), 20);
+    frequency_label_.setBounds(slider_bounds.getX(), 70, slider_bounds.getWidth(), 20);
+    frequency_slider_.setBounds(slider_bounds.getX(), 100, slider_bounds.getWidth(), 20);
+
+    message_box_.setBounds(getLocalBounds().withWidth(half_width).withX(half_width).reduced(10));
 }
 
 void MainComponent::prepareToPlay(int samples_per_block, double sample_rate)
@@ -71,6 +90,8 @@ void MainComponent::timerCallback()
     latest_message_.swap(message);
 
     if (message.has_value()) {
+        level_slider_.setValue(message->level, juce::dontSendNotification);
+        frequency_slider_.setValue(message->frequency, juce::dontSendNotification);
         juce::String my_str;
         my_str << message->level << " : " << message->frequency;
         log_message(my_str);

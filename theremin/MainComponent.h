@@ -42,6 +42,12 @@ private:
 
     juce::TextEditor message_box_;
 
+    juce::Label level_label_;
+    juce::Slider level_slider_;
+
+    juce::Label frequency_label_;
+    juce::Slider frequency_slider_;
+
     MessageQueue messages_;
     HandTracker tracker_;
     FrameProcessor frame_processor_;
