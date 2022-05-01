@@ -2,7 +2,9 @@
 
 #include "LeapC.h"
 
+#include <exception>
 #include <memory>
+#include <string>
 
 #include <cstdint>
 
@@ -12,6 +14,29 @@ namespace lpp
 using Timestamp = int64_t;
 
 [[nodiscard]] Timestamp get_now();
+
+[[nodiscard]] const char* get_error_message(eLeapRS error);
+
+[[nodiscard]] static std::string get_error_string(eLeapRS error)
+{
+    return {get_error_message(error)};
+}
+
+class Exception: public std::exception
+{
+public:
+    explicit Exception(eLeapRS result_code)
+            : error_message_(get_error_message(result_code))
+    {}
+
+    [[nodiscard]] const char* what() const noexcept override
+    {
+        return error_message_;
+    }
+
+private:
+    const char* error_message_;
+};
 
 class Connection
 {

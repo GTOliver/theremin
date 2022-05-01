@@ -1,6 +1,5 @@
 #include "ConnectionImpl.h"
-
-#include <stdexcept>
+#include "Exception.h"
 
 namespace lpp
 {
@@ -11,7 +10,8 @@ Connection::impl::impl()
           polling_thread_{nullptr},
           stop_flag_()
 {
-    LeapCreateConnection(&config_, &connection_);
+    const auto result = LeapCreateConnection(&config_, &connection_);
+    success_or_throw(result);
 }
 
 Connection::impl::~impl()
@@ -24,7 +24,8 @@ void Connection::impl::open()
     if (polling_thread_) {
         throw std::runtime_error("Connection already open");
     }
-    LeapOpenConnection(connection_);
+    auto result = LeapOpenConnection(connection_);
+    success_or_throw(result);
     stop_flag_.test_and_set();
     polling_thread_ = std::make_unique<std::thread>([this]() { poll_loop(); });
 }

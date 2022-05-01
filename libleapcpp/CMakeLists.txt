@@ -3,6 +3,8 @@ add_library(LeapCpp
         src/LeapCpp.cpp
         src/ConnectionImpl.h
         src/ConnectionImpl.cpp
+        src/Exception.h
+        src/Exception.cpp
         )
 
 target_include_directories(LeapCpp PUBLIC include)

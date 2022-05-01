@@ -3,13 +3,19 @@
 #include "LeapC.h"
 
 #include "ConnectionImpl.h"
+#include "Exception.h"
 
 namespace lpp
 {
 
-long long get_now()
+Timestamp get_now()
 {
     return LeapGetNow();
+}
+
+const char* get_error_message(eLeapRS result)
+{
+    return get_error_message_impl(result);
 }
 
 Connection::Connection()
