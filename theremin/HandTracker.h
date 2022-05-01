@@ -15,6 +15,9 @@ public:
     HandTracker();
     ~HandTracker();
 
+    HandTracker(const HandTracker&) = delete;
+    HandTracker& operator=(const HandTracker&) = delete;
+
     using Callback = std::function<void(TrackingFrame)>;
 
     void set_callback(Callback callback);
