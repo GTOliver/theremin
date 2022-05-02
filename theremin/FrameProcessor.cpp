@@ -16,3 +16,23 @@ std::optional<ThereMessage> FrameProcessor::process(const TrackingFrame& frame)
 
     return ThereMessage{level, frequency};
 }
+
+void FrameProcessor::set_level_physical_bounds(Bounds bounds)
+{
+    level_calculator_.set_distance_bounds(std::move(bounds));
+}
+
+void FrameProcessor::set_max_level(double max)
+{
+    level_calculator_.set_max_level(max);
+}
+
+void FrameProcessor::set_frequency_physical_range(double range)
+{
+    frequency_calculator_.set_distance_range(range);
+}
+
+void FrameProcessor::set_frequency_output_bounds(Bounds bounds)
+{
+    frequency_calculator_.set_frequency_bounds(std::move(bounds));
+}

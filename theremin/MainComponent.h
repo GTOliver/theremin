@@ -34,19 +34,39 @@ public:
     void timerCallback() override;
 
 private:
-    void log_message(const juce::String& msg);
+    void on_freq_slider_changed(juce::Slider* slider_ptr);
+
+    void on_freq_range_slider_changed();
+
+    void on_volume_slider_changed();
+
+    void on_volume_range_slider_changed(juce::Slider* slider_ptr);
 
     void update_ui(ThereMessage message);
 
     void tracking_callback(TrackingFrame frame);
 
-    juce::TextEditor message_box_;
+    juce::Label live_level_label_;
+    juce::Slider live_level_slider_;
 
-    juce::Label level_label_;
-    juce::Slider level_slider_;
+    juce::Label live_frequency_label_;
+    juce::Slider live_frequency_slider_;
 
-    juce::Label frequency_label_;
-    juce::Slider frequency_slider_;
+    juce::Label volume_label_;
+    juce::Slider volume_slider_;
+
+    juce::Label volume_min_distance_label_;
+    juce::Slider volume_min_distance_slider_;
+    juce::Label volume_max_distance_label_;
+    juce::Slider volume_max_distance_slider_;
+
+    juce::Label freq_min_label_;
+    juce::Slider freq_min_slider_;
+    juce::Label freq_max_label_;
+    juce::Slider freq_max_slider_;
+
+    juce::Label freq_distance_label_;
+    juce::Slider freq_distance_slider_;
 
     MessageQueue messages_;
     HandTracker tracker_;

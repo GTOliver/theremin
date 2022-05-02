@@ -9,6 +9,7 @@ target_sources(Theremin
         main.cpp
         AudioProcessor.h
         AudioProcessor.cpp
+        Bounds.h
         CallbackListener.h
         MainComponent.h
         MainComponent.cpp

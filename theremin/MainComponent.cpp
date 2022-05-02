@@ -3,33 +3,74 @@
 #include "MainComponent.h"
 
 MainComponent::MainComponent()
-        : message_box_(),
-          tracker_{},
+        : tracker_{},
           audio_processor_{},
           messages_{},
           latest_message_{}
 {
     tracker_.set_callback([this](TrackingFrame frame) { tracking_callback(frame); });
 
-    addAndMakeVisible(message_box_);
-    message_box_.setMultiLine(true);
-    message_box_.setReturnKeyStartsNewLine(true);
-    message_box_.setReadOnly(true);
-    message_box_.setScrollbarsShown(true);
-    message_box_.setCaretVisible(false);
-    message_box_.setPopupMenuEnabled(true);
+    addAndMakeVisible(live_level_label_);
+    live_level_label_.setText("Level", juce::dontSendNotification);
+    addAndMakeVisible(live_level_slider_);
+    live_level_slider_.setRange(0.0, 0.2);
 
-    addAndMakeVisible(level_label_);
-    level_label_.setText("Level", juce::dontSendNotification);
+    double freq_absolute_min = 0.0;
+    double freq_absolute_max = 10000.0;
+    double freq_initial_min = 500.0;
+    double freq_initial_max = 2000.0;
 
-    addAndMakeVisible(level_slider_);
-    level_slider_.setRange(0.0, 0.2);
+    addAndMakeVisible(live_frequency_label_);
+    live_frequency_label_.setText("Frequency", juce::dontSendNotification);
+    addAndMakeVisible(live_frequency_slider_);
+    live_frequency_slider_.setRange(freq_initial_min, freq_initial_max);
+    live_frequency_slider_.setSkewFactorFromMidPoint(1000.0);
 
-    addAndMakeVisible(frequency_label_);
-    frequency_label_.setText("Frequency", juce::dontSendNotification);
+    addAndMakeVisible(volume_label_);
+    volume_label_.setText("Volume", juce::dontSendNotification);
+    addAndMakeVisible(volume_slider_);
+    volume_slider_.setRange(0.0, 0.5);
+    volume_slider_.onValueChange = [this]() { on_volume_slider_changed(); };
+    volume_slider_.setValue(0.2);
 
-    addAndMakeVisible(frequency_slider_);
-    frequency_slider_.setRange(500.0, 2000.0);
+    addAndMakeVisible(volume_min_distance_label_);
+    volume_min_distance_label_.setText("Volume Min Distance (m)", juce::dontSendNotification);
+    addAndMakeVisible(volume_min_distance_slider_);
+    volume_min_distance_slider_.setRange(0.0, 0.5);
+    volume_min_distance_slider_.onValueChange = [this, ptr = &volume_min_distance_slider_]() {
+        on_volume_range_slider_changed(ptr);
+    };
+    volume_min_distance_slider_.setValue(0.15, juce::dontSendNotification);
+
+    addAndMakeVisible(volume_max_distance_label_);
+    volume_max_distance_label_.setText("Volume Max Distance (m)", juce::dontSendNotification);
+    addAndMakeVisible(volume_max_distance_slider_);
+    volume_max_distance_slider_.setRange(0.15, 1.0);
+    volume_max_distance_slider_.onValueChange = [this, ptr = &volume_max_distance_slider_]() {
+        on_volume_range_slider_changed(ptr);
+    };
+    volume_max_distance_slider_.setValue(0.5);
+
+    addAndMakeVisible(freq_min_label_);
+    freq_min_label_.setText("Min Frequency", juce::dontSendNotification);
+    addAndMakeVisible(freq_min_slider_);
+    freq_min_slider_.setRange(freq_absolute_min, freq_initial_max);
+    freq_min_slider_.onValueChange = [this, ptr = &freq_min_slider_]() { on_freq_slider_changed(ptr); };
+    freq_min_slider_.setValue(freq_initial_min, juce::dontSendNotification);
+
+    addAndMakeVisible(freq_max_label_);
+    freq_max_label_.setText("Max Frequency", juce::dontSendNotification);
+    addAndMakeVisible(freq_max_slider_);
+    freq_max_slider_.setRange(freq_initial_min, freq_absolute_max);
+    freq_max_slider_.onValueChange = [this, ptr = &freq_max_slider_]() { on_freq_slider_changed(ptr); };
+    freq_max_slider_.setValue(freq_initial_max);
+
+    addAndMakeVisible(freq_distance_label_);
+    freq_distance_label_.setText("Frequency Distance (m)", juce::dontSendNotification);
+    addAndMakeVisible(freq_distance_slider_);
+    freq_distance_slider_.setRange(0.01, 1.0);
+    freq_distance_slider_.onValueChange = [this]() { on_freq_range_slider_changed(); };
+    freq_distance_slider_.setValue(0.5);
 
     setSize(600, 400);
 
@@ -45,34 +86,39 @@ MainComponent::~MainComponent()
 
 void MainComponent::resized()
 {
-    auto half_width = getWidth() / 2;
+    auto slider_bounds = getLocalBounds().reduced(10);
+    auto half_width = slider_bounds.getWidth() / 2;
 
-    auto slider_bounds = getLocalBounds().withWidth(half_width).reduced(10);
+    live_level_label_.setBounds(slider_bounds.getX(), 10, slider_bounds.getWidth(), 20);
+    live_level_slider_.setBounds(slider_bounds.getX(), 40, slider_bounds.getWidth(), 20);
+    live_frequency_label_.setBounds(slider_bounds.getX(), 70, slider_bounds.getWidth(), 20);
+    live_frequency_slider_.setBounds(slider_bounds.getX(), 100, slider_bounds.getWidth(), 20);
 
-    level_label_.setBounds(slider_bounds.getX(), 10, slider_bounds.getWidth(), 20);
-    level_slider_.setBounds(slider_bounds.getX(), 40, slider_bounds.getWidth(), 20);
-    frequency_label_.setBounds(slider_bounds.getX(), 70, slider_bounds.getWidth(), 20);
-    frequency_slider_.setBounds(slider_bounds.getX(), 100, slider_bounds.getWidth(), 20);
+    volume_label_.setBounds(slider_bounds.getX(), 130, slider_bounds.getWidth(), 20);
+    volume_slider_.setBounds(slider_bounds.getX(), 160, slider_bounds.getWidth(), 20);
 
-    message_box_.setBounds(getLocalBounds().withWidth(half_width).withX(half_width).reduced(10));
+    volume_min_distance_label_.setBounds(slider_bounds.getX(), 190, half_width, 20);
+    volume_min_distance_slider_.setBounds(slider_bounds.getX(), 220, half_width, 20);
+
+    volume_max_distance_label_.setBounds(slider_bounds.getX() + half_width, 190, half_width, 20);
+    volume_max_distance_slider_.setBounds(slider_bounds.getX() + half_width, 220, half_width, 20);
+
+    freq_min_label_.setBounds(slider_bounds.getX(), 250, half_width, 20);
+    freq_min_slider_.setBounds(slider_bounds.getX(), 280, half_width, 20);
+    freq_max_label_.setBounds(slider_bounds.getX() + half_width, 250, half_width, 20);
+    freq_max_slider_.setBounds(slider_bounds.getX() + half_width, 280, half_width, 20);
+
+    freq_distance_label_.setBounds(slider_bounds.getX(), 310, slider_bounds.getWidth(), 20);
+    freq_distance_slider_.setBounds(slider_bounds.getX(), 340, slider_bounds.getWidth(), 20);
 }
 
-void MainComponent::prepareToPlay(int samples_per_block, double sample_rate)
+void MainComponent::prepareToPlay([[maybe_unused]] int samples_per_block, double sample_rate)
 {
     audio_processor_.prepare(sample_rate);
-
-    juce::String msg;
-    msg << "Preparing to play:" << juce::newLine;
-    msg << "\tSample Rate: " << sample_rate << juce::newLine;
-    msg << "\tBuffer Size: " << samples_per_block << juce::newLine;
-    log_message(msg);
 }
 
 void MainComponent::releaseResources()
 {
-    juce::String msg;
-    msg << "Releasing resources..." << juce::newLine;
-    log_message(msg);
 }
 
 void MainComponent::getNextAudioBlock(const juce::AudioSourceChannelInfo& audio_data)
@@ -90,18 +136,55 @@ void MainComponent::timerCallback()
     latest_message_.swap(message);
 
     if (message.has_value()) {
-        level_slider_.setValue(message->level, juce::dontSendNotification);
-        frequency_slider_.setValue(message->frequency, juce::dontSendNotification);
-        juce::String my_str;
-        my_str << message->level << " : " << message->frequency;
-        log_message(my_str);
+        live_level_slider_.setValue(message->level, juce::dontSendNotification);
+        live_frequency_slider_.setValue(message->frequency, juce::dontSendNotification);
     }
 }
 
-void MainComponent::log_message(const juce::String& msg)
+void MainComponent::on_freq_slider_changed(juce::Slider* slider_ptr)
 {
-    message_box_.moveCaretToEnd();
-    message_box_.insertTextAtCaret(msg + juce::newLine);
+    if (slider_ptr == &freq_min_slider_) {
+        freq_max_slider_.setRange(freq_min_slider_.getValue(), freq_max_slider_.getMaximum());
+    } else if (slider_ptr == &freq_max_slider_) {
+        freq_min_slider_.setRange(freq_min_slider_.getMinimum(), freq_max_slider_.getValue());
+    }
+    live_frequency_slider_.setRange(freq_min_slider_.getValue(), freq_max_slider_.getValue());
+
+    repaint();
+
+    frame_processor_.set_frequency_output_bounds(
+            Bounds(freq_min_slider_.getValue(), freq_max_slider_.getValue()));
+}
+
+void MainComponent::on_freq_range_slider_changed()
+{
+    frame_processor_.set_frequency_physical_range(freq_distance_slider_.getValue());
+}
+
+void MainComponent::on_volume_slider_changed()
+{
+    live_level_slider_.setRange(0.0, volume_slider_.getValue());
+    frame_processor_.set_max_level(volume_slider_.getValue());
+    repaint();
+}
+
+void MainComponent::on_volume_range_slider_changed(juce::Slider* slider_ptr)
+{
+    if (slider_ptr == &volume_min_distance_slider_) {
+        volume_max_distance_slider_.setRange(
+                volume_min_distance_slider_.getValue(),
+                volume_max_distance_slider_.getMaximum());
+    } else if (slider_ptr == &volume_max_distance_slider_) {
+        volume_min_distance_slider_.setRange(
+                volume_min_distance_slider_.getMinimum(),
+                volume_max_distance_slider_.getValue());
+    }
+
+    repaint();
+
+    frame_processor_.set_level_physical_bounds(
+            Bounds(volume_min_distance_slider_.getValue(),
+                   volume_max_distance_slider_.getValue()));
 }
 
 void MainComponent::update_ui(ThereMessage message)
