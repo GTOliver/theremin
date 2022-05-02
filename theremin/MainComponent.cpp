@@ -77,17 +77,18 @@ MainComponent::MainComponent()
     freq_scaling_label_.attachToComponent(&freq_scaling_box_, true);
 
     addAndMakeVisible(freq_scaling_box_);
-
     freq_scaling_box_.addItemList({"Linear", "String", "Keyboard", "Theremin"}, 1);
     freq_scaling_box_.onChange = [this]() { on_freq_scaling_changed(); };
     freq_scaling_box_.setSelectedId(3);
 
     addAndMakeVisible(snapping_label_);
     snapping_label_.setText("Snapping", juce::dontSendNotification);
-    snapping_label_.attachToComponent(&snapping_button_, true);
+    snapping_label_.attachToComponent(&snapping_box_, true);
 
-    addAndMakeVisible(snapping_button_);
-    snapping_button_.onClick = [this]() {on_snapping_changed();};
+    addAndMakeVisible(snapping_box_);
+    snapping_box_.addItemList({"None", "Chromatic", "Pentatonic", "Major"}, 1);
+    snapping_box_.onChange = [this]() { on_snapping_changed(); };
+    snapping_box_.setSelectedId(1);
 
     setSize(800, 600);
 
@@ -129,7 +130,7 @@ void MainComponent::resized()
     freq_distance_slider_.setBounds(slider_bounds.getX(), 340, slider_bounds.getWidth(), 20);
 
     freq_scaling_box_.setBounds(slider_bounds.getX() + half_width, 370, half_width, 20);
-    snapping_button_.setBounds(slider_bounds.getX() + half_width, 400, half_width, 20);
+    snapping_box_.setBounds(slider_bounds.getX() + half_width, 400, half_width, 20);
 }
 
 void MainComponent::prepareToPlay([[maybe_unused]] int samples_per_block, double sample_rate)
@@ -232,7 +233,25 @@ void MainComponent::on_freq_scaling_changed()
 
 void MainComponent::on_snapping_changed()
 {
-    frame_processor_.set_snapping_enabled(snapping_button_.getToggleState());
+    SnappingMode mode;
+    switch (snapping_box_.getSelectedId()) {
+        case (1):
+            mode = SnappingMode::None;
+            break;
+        case (2):
+            mode = SnappingMode::Chromatic;
+            break;
+        case (3):
+            mode = SnappingMode::Pentatonic;
+            break;
+        case (4):
+            mode = SnappingMode::Major;
+            break;
+        default:
+            // This should never happen
+            return;
+    }
+    frame_processor_.set_snapping_mode(mode);
 }
 
 void MainComponent::update_ui(ThereMessage message)

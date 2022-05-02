@@ -1,6 +1,7 @@
 #include "FrequencyCalculator.h"
 
 #include <algorithm>
+#include <array>
 #include <cmath>
 
 double FrequencyCalculator::calculate(double position) const
@@ -12,10 +13,16 @@ double FrequencyCalculator::calculate(double position) const
 
     double freq = calculate_scaled_frequency(fraction);
 
-    if (snapping_enabled_) {
-        freq = snap_frequency(freq);
+    switch (snapping_mode_) {
+        case (SnappingMode::Chromatic):
+            return snap_to_chromatic(freq);
+        case (SnappingMode::Pentatonic):
+            return snap_to_scale(pentatonic_major_scale_, freq);
+        case (SnappingMode::Major):
+            return snap_to_scale(major_scale_, freq);
+        default:
+            return freq;
     }
-    return freq;
 }
 
 void FrequencyCalculator::set_distance_range(double range)
@@ -36,10 +43,10 @@ void FrequencyCalculator::set_scaling_method(ScalingMethod method)
     scaling_method_ = method;
 }
 
-void FrequencyCalculator::set_snapping_enabled(bool enabled)
+void FrequencyCalculator::set_snapping_mode(SnappingMode mode)
 {
     std::scoped_lock lock(mtx_);
-    snapping_enabled_ = enabled;
+    snapping_mode_ = mode;
 }
 
 double FrequencyCalculator::calculate_scaled_frequency(double progress) const
@@ -66,10 +73,56 @@ double FrequencyCalculator::calculate_scaled_frequency(double progress) const
     }
 }
 
-double FrequencyCalculator::snap_frequency(double freq) const
+double FrequencyCalculator::freq_to_note_number(double freq) const
 {
-    double n = static_cast<double>(snapping_N_) * std::log2(freq/snapping_f0_);
-    n = std::round(n);
+    return static_cast<double>(snapping_N_) * std::log2(freq / snapping_f0_);
+}
 
+double FrequencyCalculator::note_number_to_freq(double n) const
+{
     return snapping_f0_ * std::pow(2.0, n / static_cast<double>(snapping_N_));
+}
+
+double FrequencyCalculator::snap_to_chromatic(double freq) const
+{
+    auto n = freq_to_note_number(freq);
+    auto rounded = std::round(n);
+    return note_number_to_freq(rounded);
+}
+
+double FrequencyCalculator::snap_to_scale(const std::vector<int>& scale, double freq) const
+{
+    auto n = freq_to_note_number(freq);
+    auto rounded_n = std::round(n);
+
+    int octave = static_cast<int>(rounded_n) / snapping_N_;
+    int n_mod_N = static_cast<int>(rounded_n) % snapping_N_;
+    while (n_mod_N < 0) {
+        --octave;
+        n_mod_N += snapping_N_;
+    }
+
+    for (auto i = 0; i < scale.size(); ++i) {
+        const auto current = scale[i];
+        auto next = i == scale.size() - 1 ? snapping_N_ : scale[i + 1];
+
+        if (current == n_mod_N) {
+            break;
+        }
+
+        if (current < n_mod_N && n_mod_N < next) {
+            auto delta = std::fmod(n, static_cast<double>(snapping_N_));
+            while (delta < 0) {
+                delta += static_cast<double>(snapping_N_);
+            }
+            if ((delta - current) <= (next - delta)) {
+                rounded_n = static_cast<double>(octave * snapping_N_ + current);
+            } else {
+                rounded_n = static_cast<double>(octave * snapping_N_ + next);
+            }
+            break;
+        }
+    }
+
+    return note_number_to_freq(rounded_n);
 }

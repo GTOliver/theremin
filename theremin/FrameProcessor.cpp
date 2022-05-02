@@ -42,7 +42,7 @@ void FrameProcessor::set_frequency_scaling(ScalingMethod scaling)
     frequency_calculator_.set_scaling_method(scaling);
 }
 
-void FrameProcessor::set_snapping_enabled(bool enabled)
+void FrameProcessor::set_snapping_mode(SnappingMode mode)
 {
-    frequency_calculator_.set_snapping_enabled(enabled);
+    frequency_calculator_.set_snapping_mode(mode);
 }

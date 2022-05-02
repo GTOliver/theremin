@@ -76,7 +76,7 @@ private:
     juce::ComboBox freq_scaling_box_;
 
     juce::Label snapping_label_;
-    juce::ToggleButton snapping_button_;
+    juce::ComboBox snapping_box_;
 
     MessageQueue messages_;
     HandTracker tracker_;
