@@ -42,6 +42,8 @@ private:
 
     void on_volume_range_slider_changed(juce::Slider* slider_ptr);
 
+    void on_freq_scaling_changed();
+
     void update_ui(ThereMessage message);
 
     void tracking_callback(TrackingFrame frame);
@@ -67,6 +69,9 @@ private:
 
     juce::Label freq_distance_label_;
     juce::Slider freq_distance_slider_;
+
+    juce::Label freq_scaling_label_;
+    juce::ComboBox freq_scaling_box_;
 
     MessageQueue messages_;
     HandTracker tracker_;

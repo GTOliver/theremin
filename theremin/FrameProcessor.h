@@ -24,6 +24,8 @@ public:
 
     void set_frequency_output_bounds(Bounds bounds);
 
+    void set_frequency_scaling(ScalingMethod scaling);
+
 private:
     bool currently_emitting_{false};
 

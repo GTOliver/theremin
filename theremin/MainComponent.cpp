@@ -72,6 +72,16 @@ MainComponent::MainComponent()
     freq_distance_slider_.onValueChange = [this]() { on_freq_range_slider_changed(); };
     freq_distance_slider_.setValue(0.5);
 
+    addAndMakeVisible(freq_scaling_label_);
+    freq_scaling_label_.setText("Frequency Scaling Method", juce::dontSendNotification);
+    freq_scaling_label_.attachToComponent(&freq_scaling_box_, true);
+
+    addAndMakeVisible(freq_scaling_box_);
+
+    freq_scaling_box_.addItemList({"Linear", "String", "Keyboard", "Theremin"}, 1);
+    freq_scaling_box_.onChange = [this]() { on_freq_scaling_changed(); };
+    freq_scaling_box_.setSelectedId(3);
+
     setSize(600, 400);
 
     setAudioChannels(0, 2);
@@ -110,6 +120,8 @@ void MainComponent::resized()
 
     freq_distance_label_.setBounds(slider_bounds.getX(), 310, slider_bounds.getWidth(), 20);
     freq_distance_slider_.setBounds(slider_bounds.getX(), 340, slider_bounds.getWidth(), 20);
+
+    freq_scaling_box_.setBounds(slider_bounds.getX() + half_width, 370, half_width, 20);
 }
 
 void MainComponent::prepareToPlay([[maybe_unused]] int samples_per_block, double sample_rate)
@@ -185,6 +197,29 @@ void MainComponent::on_volume_range_slider_changed(juce::Slider* slider_ptr)
     frame_processor_.set_level_physical_bounds(
             Bounds(volume_min_distance_slider_.getValue(),
                    volume_max_distance_slider_.getValue()));
+}
+
+void MainComponent::on_freq_scaling_changed()
+{
+    ScalingMethod method;
+    switch (freq_scaling_box_.getSelectedId()) {
+        case (1):
+            method = ScalingMethod::Linear;
+            break;
+        case (2):
+            method = ScalingMethod::String;
+            break;
+        case (3):
+            method = ScalingMethod::Keyboard;
+            break;
+        case (4):
+            method = ScalingMethod::Theremin;
+            break;
+        default:
+            // This should never happen
+            return;
+    };
+    frame_processor_.set_frequency_scaling(method);
 }
 
 void MainComponent::update_ui(ThereMessage message)
