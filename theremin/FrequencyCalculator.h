@@ -1,5 +1,7 @@
 #pragma once
 
+#include <mutex>
+
 #include "Bounds.h"
 
 class FrequencyCalculator
@@ -12,6 +14,7 @@ public:
     void set_frequency_bounds(Bounds bounds);
 
 private:
+    std::mutex mtx_;
     double range_{0.5};
     Bounds frequency_{500, 2000};
 };
