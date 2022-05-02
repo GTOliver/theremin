@@ -26,6 +26,8 @@ public:
 
     void set_frequency_scaling(ScalingMethod scaling);
 
+    void set_snapping_enabled(bool enabled);
+
 private:
     bool currently_emitting_{false};
 

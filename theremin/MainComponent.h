@@ -44,6 +44,8 @@ private:
 
     void on_freq_scaling_changed();
 
+    void on_snapping_changed();
+
     void update_ui(ThereMessage message);
 
     void tracking_callback(TrackingFrame frame);
@@ -72,6 +74,9 @@ private:
 
     juce::Label freq_scaling_label_;
     juce::ComboBox freq_scaling_box_;
+
+    juce::Label snapping_label_;
+    juce::ToggleButton snapping_button_;
 
     MessageQueue messages_;
     HandTracker tracker_;

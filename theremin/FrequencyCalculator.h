@@ -30,11 +30,19 @@ public:
 
     void set_scaling_method(ScalingMethod method);
 
+    void set_snapping_enabled(bool enabled);
+
 private:
     double calculate_scaled_frequency(double input) const;
+
+    double snap_frequency(double freq) const;
 
     mutable std::mutex mtx_;
     double range_{0.5};
     Bounds frequency_{500, 2000};
     ScalingMethod scaling_method_{ScalingMethod::Linear};
+    bool snapping_enabled_{false};
+
+    double snapping_f0_{440.0};
+    int snapping_N_{12};
 };

@@ -17,8 +17,8 @@ MainComponent::MainComponent()
 
     double freq_absolute_min = 0.0;
     double freq_absolute_max = 10000.0;
-    double freq_initial_min = 500.0;
-    double freq_initial_max = 2000.0;
+    double freq_initial_min = 440.0;
+    double freq_initial_max = 1760.0;
 
     addAndMakeVisible(live_frequency_label_);
     live_frequency_label_.setText("Frequency", juce::dontSendNotification);
@@ -82,7 +82,14 @@ MainComponent::MainComponent()
     freq_scaling_box_.onChange = [this]() { on_freq_scaling_changed(); };
     freq_scaling_box_.setSelectedId(3);
 
-    setSize(600, 400);
+    addAndMakeVisible(snapping_label_);
+    snapping_label_.setText("Snapping", juce::dontSendNotification);
+    snapping_label_.attachToComponent(&snapping_button_, true);
+
+    addAndMakeVisible(snapping_button_);
+    snapping_button_.onClick = [this]() {on_snapping_changed();};
+
+    setSize(800, 600);
 
     setAudioChannels(0, 2);
     startTimerHz(30);
@@ -122,6 +129,7 @@ void MainComponent::resized()
     freq_distance_slider_.setBounds(slider_bounds.getX(), 340, slider_bounds.getWidth(), 20);
 
     freq_scaling_box_.setBounds(slider_bounds.getX() + half_width, 370, half_width, 20);
+    snapping_button_.setBounds(slider_bounds.getX() + half_width, 400, half_width, 20);
 }
 
 void MainComponent::prepareToPlay([[maybe_unused]] int samples_per_block, double sample_rate)
@@ -218,8 +226,13 @@ void MainComponent::on_freq_scaling_changed()
         default:
             // This should never happen
             return;
-    };
+    }
     frame_processor_.set_frequency_scaling(method);
+}
+
+void MainComponent::on_snapping_changed()
+{
+    frame_processor_.set_snapping_enabled(snapping_button_.getToggleState());
 }
 
 void MainComponent::update_ui(ThereMessage message)

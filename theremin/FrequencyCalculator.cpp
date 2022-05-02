@@ -10,7 +10,12 @@ double FrequencyCalculator::calculate(double position) const
     double fraction = (position - distance_min) / range_;
     fraction = std::clamp(fraction, 0.0, 1.0);
 
-    return calculate_scaled_frequency(fraction);
+    double freq = calculate_scaled_frequency(fraction);
+
+    if (snapping_enabled_) {
+        freq = snap_frequency(freq);
+    }
+    return freq;
 }
 
 void FrequencyCalculator::set_distance_range(double range)
@@ -29,6 +34,12 @@ void FrequencyCalculator::set_scaling_method(ScalingMethod method)
 {
     std::scoped_lock lock(mtx_);
     scaling_method_ = method;
+}
+
+void FrequencyCalculator::set_snapping_enabled(bool enabled)
+{
+    std::scoped_lock lock(mtx_);
+    snapping_enabled_ = enabled;
 }
 
 double FrequencyCalculator::calculate_scaled_frequency(double progress) const
@@ -53,4 +64,12 @@ double FrequencyCalculator::calculate_scaled_frequency(double progress) const
             // This should never happen
             return frequency_.min();
     }
+}
+
+double FrequencyCalculator::snap_frequency(double freq) const
+{
+    double n = static_cast<double>(snapping_N_) * std::log2(freq/snapping_f0_);
+    n = std::round(n);
+
+    return snapping_f0_ * std::pow(2.0, n / static_cast<double>(snapping_N_));
 }
