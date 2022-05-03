@@ -30,13 +30,19 @@ void AudioProcessor::process(ThereMessage message)
 {
     if (message.off) {
         state_ = EnvelopeState::Release;
+        specific_release_rate_ = envelope_level_ * release_rate_;
         return;
     }
 
     bool currently_off = (state_ == EnvelopeState::Release || state_ == EnvelopeState::Off);
 
     if (message.note_change || (currently_off && message.level > 0.0)) {
-        state_ = attack_.load() == 0.0 ? EnvelopeState::Sustain : EnvelopeState::Attack;
+        if (attack_.load() == 0.0) {
+            state_ = EnvelopeState::Sustain;
+        } else {
+            state_ = EnvelopeState::Attack;
+            specific_attack_rate_ = attack_rate_ * (attack_target_ - envelope_level_);
+        }
     }
 
     target_level_ = message.level;
@@ -54,11 +60,14 @@ void AudioProcessor::set_decay(double decay)
 {
     decay_.store(decay);
     decay_rate_ = calculate_rate(decay);
+
+    update_attack_target();
 }
 
 void AudioProcessor::set_sustain(double sustain)
 {
     sustain_.store(sustain);
+    update_attack_target();
 }
 
 void AudioProcessor::set_release(double release)
@@ -73,6 +82,11 @@ double AudioProcessor::calculate_rate(double duration) const
         return 0.0;
     }
     return 1000.0 / (duration * sample_rate_);
+}
+
+void AudioProcessor::update_attack_target()
+{
+    attack_target_ = decay_rate_ == 0.0 ? sustain_.load() : 1.0;
 }
 
 double AudioProcessor::frequency_to_phase_change(double frequency) const
@@ -104,11 +118,12 @@ float AudioProcessor::next_value()
 
     switch (state_) {
         case (EnvelopeState::Attack): {
-            envelope_level_ += attack_rate_;
-            if (envelope_level_ >= 1.0) {
-                envelope_level_ = 1.0;
+            envelope_level_ += specific_attack_rate_;
+            if (envelope_level_ >= attack_target_) {
+                envelope_level_ = attack_target_;
                 if (decay_rate_ > 0.0) {
                     state_ = EnvelopeState::Decay;
+                    specific_decay_rate_ = (attack_target_ - sustain_) * decay_rate_;
                 } else {
                     envelope_level_ = sustain_;
                 }
@@ -116,7 +131,7 @@ float AudioProcessor::next_value()
             break;
         }
         case (EnvelopeState::Decay): {
-            envelope_level_ -= decay_rate_;
+            envelope_level_ -= specific_decay_rate_;
             if (envelope_level_ <= sustain_) {
                 envelope_level_ = sustain_;
                 state_ = EnvelopeState::Sustain;
@@ -128,7 +143,7 @@ float AudioProcessor::next_value()
             break;
         }
         case (EnvelopeState::Release): {
-            envelope_level_ -= release_rate_;
+            envelope_level_ -= specific_release_rate_;
             if (envelope_level_ <= 0.0) {
                 envelope_level_ = 0.0;
                 state_ = EnvelopeState::Off;
