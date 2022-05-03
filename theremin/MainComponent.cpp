@@ -90,6 +90,43 @@ MainComponent::MainComponent()
     snapping_box_.onChange = [this]() { on_snapping_changed(); };
     snapping_box_.setSelectedId(1);
 
+    double adsr_attack = 100.0;
+    double adsr_decay = 200.0;
+    double adsr_sustain = 0.8;
+    double adsr_release = 200.0;
+
+    addAndMakeVisible(adsr_attack_label_);
+    adsr_attack_label_.setText("Attack", juce::dontSendNotification);
+    adsr_attack_label_.attachToComponent(&adsr_attack_slider_, true);
+    addAndMakeVisible(adsr_attack_slider_);
+    adsr_attack_slider_.setRange(0.0, 500.0);
+    adsr_attack_slider_.onValueChange = [this]() { on_adsr_changed(); };
+    adsr_attack_slider_.setValue(adsr_attack);
+
+    addAndMakeVisible(adsr_decay_label_);
+    adsr_decay_label_.setText("Decay", juce::dontSendNotification);
+    adsr_decay_label_.attachToComponent(&adsr_decay_slider_, true);
+    addAndMakeVisible(adsr_decay_slider_);
+    adsr_decay_slider_.setRange(0.0, 500.0);
+    adsr_decay_slider_.onValueChange = [this]() { on_adsr_changed(); };
+    adsr_decay_slider_.setValue(adsr_decay);
+
+    addAndMakeVisible(adsr_sustain_slider_);
+    adsr_sustain_label_.setText("Sustain", juce::dontSendNotification);
+    adsr_sustain_label_.attachToComponent(&adsr_sustain_slider_, true);
+    addAndMakeVisible(adsr_sustain_slider_);
+    adsr_sustain_slider_.setRange(0.0, 1.0);
+    adsr_sustain_slider_.onValueChange = [this]() { on_adsr_changed(); };
+    adsr_sustain_slider_.setValue(adsr_sustain);
+
+    addAndMakeVisible(adsr_release_label_);
+    adsr_release_label_.setText("Release", juce::dontSendNotification);
+    adsr_release_label_.attachToComponent(&adsr_release_slider_, true);
+    addAndMakeVisible(adsr_release_slider_);
+    adsr_release_slider_.setRange(0.0, 1000.0);
+    adsr_release_slider_.onValueChange = [this]() { on_adsr_changed(); };
+    adsr_release_slider_.setValue(adsr_release);
+
     setSize(800, 600);
 
     setAudioChannels(0, 2);
@@ -106,6 +143,7 @@ void MainComponent::resized()
 {
     auto slider_bounds = getLocalBounds().reduced(10);
     auto half_width = slider_bounds.getWidth() / 2;
+    auto rhs_x = slider_bounds.getX() + half_width;
 
     live_level_label_.setBounds(slider_bounds.getX(), 10, slider_bounds.getWidth(), 20);
     live_level_slider_.setBounds(slider_bounds.getX(), 40, slider_bounds.getWidth(), 20);
@@ -118,19 +156,24 @@ void MainComponent::resized()
     volume_min_distance_label_.setBounds(slider_bounds.getX(), 190, half_width, 20);
     volume_min_distance_slider_.setBounds(slider_bounds.getX(), 220, half_width, 20);
 
-    volume_max_distance_label_.setBounds(slider_bounds.getX() + half_width, 190, half_width, 20);
-    volume_max_distance_slider_.setBounds(slider_bounds.getX() + half_width, 220, half_width, 20);
+    volume_max_distance_label_.setBounds(rhs_x, 190, half_width, 20);
+    volume_max_distance_slider_.setBounds(rhs_x, 220, half_width, 20);
 
     freq_min_label_.setBounds(slider_bounds.getX(), 250, half_width, 20);
     freq_min_slider_.setBounds(slider_bounds.getX(), 280, half_width, 20);
-    freq_max_label_.setBounds(slider_bounds.getX() + half_width, 250, half_width, 20);
-    freq_max_slider_.setBounds(slider_bounds.getX() + half_width, 280, half_width, 20);
+    freq_max_label_.setBounds(rhs_x, 250, half_width, 20);
+    freq_max_slider_.setBounds(rhs_x, 280, half_width, 20);
 
     freq_distance_label_.setBounds(slider_bounds.getX(), 310, slider_bounds.getWidth(), 20);
     freq_distance_slider_.setBounds(slider_bounds.getX(), 340, slider_bounds.getWidth(), 20);
 
-    freq_scaling_box_.setBounds(slider_bounds.getX() + half_width, 370, half_width, 20);
-    snapping_box_.setBounds(slider_bounds.getX() + half_width, 400, half_width, 20);
+    freq_scaling_box_.setBounds(rhs_x, 370, half_width, 20);
+    snapping_box_.setBounds(rhs_x, 400, half_width, 20);
+
+    adsr_attack_slider_.setBounds(rhs_x, 430, half_width, 20);
+    adsr_decay_slider_.setBounds(rhs_x, 470, half_width, 20);
+    adsr_sustain_slider_.setBounds(rhs_x, 500, half_width, 20);
+    adsr_release_slider_.setBounds(rhs_x, 530, half_width, 20);
 }
 
 void MainComponent::prepareToPlay([[maybe_unused]] int samples_per_block, double sample_rate)
@@ -252,6 +295,14 @@ void MainComponent::on_snapping_changed()
             return;
     }
     frame_processor_.set_snapping_mode(mode);
+}
+
+void MainComponent::on_adsr_changed()
+{
+    audio_processor_.set_attack(adsr_attack_slider_.getValue());
+    audio_processor_.set_decay(adsr_decay_slider_.getValue());
+    audio_processor_.set_sustain(adsr_sustain_slider_.getValue());
+    audio_processor_.set_release(adsr_release_slider_.getValue());
 }
 
 void MainComponent::update_ui(ThereMessage message)

@@ -31,7 +31,8 @@ enum class SnappingMode
 class FrequencyCalculator
 {
 public:
-    double calculate(double position) const;
+    // Return the frequency and whether the note has snapped to a new one
+    std::pair<double, bool> calculate(double position);
 
     void set_distance_range(double range);
 
@@ -48,9 +49,9 @@ private:
 
     double note_number_to_freq(double n) const;
 
-    double snap_to_chromatic(double freq) const;
+    std::pair<double, int> snap_to_chromatic(double freq) const;
 
-    double snap_to_scale(const std::vector<int>& scale, double freq) const;
+    std::pair<double, int> snap_to_scale(const std::vector<int>& scale, double freq) const;
 
     mutable std::mutex mtx_;
     double range_{0.5};
@@ -63,4 +64,6 @@ private:
 
     const std::vector<int> major_scale_{0, 2, 4, 5, 7, 9, 11};
     const std::vector<int> pentatonic_major_scale_{0, 2, 4, 7, 9};
+
+    int n_last_snapped_{0};
 };

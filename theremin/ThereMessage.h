@@ -3,6 +3,8 @@
 // Theremin-message
 struct ThereMessage
 {
-    double level;
-    double frequency;
+    bool off{false};
+    bool note_change{false};
+    double level{0.0};
+    double frequency{0.0};
 };

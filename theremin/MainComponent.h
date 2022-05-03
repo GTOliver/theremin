@@ -46,6 +46,8 @@ private:
 
     void on_snapping_changed();
 
+    void on_adsr_changed();
+
     void update_ui(ThereMessage message);
 
     void tracking_callback(TrackingFrame frame);
@@ -77,6 +79,18 @@ private:
 
     juce::Label snapping_label_;
     juce::ComboBox snapping_box_;
+
+    juce::Label adsr_attack_label_;
+    juce::Slider adsr_attack_slider_;
+
+    juce::Label adsr_decay_label_;
+    juce::Slider adsr_decay_slider_;
+
+    juce::Label adsr_sustain_label_;
+    juce::Slider adsr_sustain_slider_;
+
+    juce::Label adsr_release_label_;
+    juce::Slider adsr_release_slider_;
 
     MessageQueue messages_;
     HandTracker tracker_;
