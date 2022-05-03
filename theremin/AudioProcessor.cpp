@@ -29,17 +29,18 @@ void AudioProcessor::get_next_audio_block(const juce::AudioSourceChannelInfo& au
 void AudioProcessor::process(ThereMessage message)
 {
     if (message.off) {
-        state_ = State::Release;
+        state_ = EnvelopeState::Release;
         return;
     }
 
-    bool currently_off = (state_ == State::Release || state_ == State::Off);
+    bool currently_off = (state_ == EnvelopeState::Release || state_ == EnvelopeState::Off);
 
     if (message.note_change || (currently_off && message.level > 0.0)) {
-        state_ = attack_.load() == 0.0 ? State::Sustain : State::Attack;
+        state_ = attack_.load() == 0.0 ? EnvelopeState::Sustain : EnvelopeState::Attack;
     }
 
-    level_ = message.level;
+    target_level_ = message.level;
+    level_change_rate_ = calculate_rate(level_ramp_time_ms) * (target_level_ - level_);
     phase_change_per_sample_ = frequency_to_phase_change(message.frequency);
 }
 
@@ -93,36 +94,44 @@ float AudioProcessor::next_value()
         phase_ = std::fmod(phase_, 2.0 * juce::MathConstants<double>::pi);
     }
 
+    if (level_change_rate_ != 0.0) {
+        int sign = (target_level_ >= level_) ? 1 : -1;
+        level_ += level_change_rate_;
+        if ((level_ - target_level_) * sign > 0) {
+            level_change_rate_ = 0.0;
+        }
+    }
+
     switch (state_) {
-        case (State::Attack): {
+        case (EnvelopeState::Attack): {
             envelope_level_ += attack_rate_;
             if (envelope_level_ >= 1.0) {
                 envelope_level_ = 1.0;
                 if (decay_rate_ > 0.0) {
-                    state_ = State::Decay;
+                    state_ = EnvelopeState::Decay;
                 } else {
                     envelope_level_ = sustain_;
                 }
             }
             break;
         }
-        case (State::Decay): {
+        case (EnvelopeState::Decay): {
             envelope_level_ -= decay_rate_;
             if (envelope_level_ <= sustain_) {
                 envelope_level_ = sustain_;
-                state_ = State::Sustain;
+                state_ = EnvelopeState::Sustain;
             }
             break;
         }
-        case (State::Sustain): {
+        case (EnvelopeState::Sustain): {
             envelope_level_ = sustain_;
             break;
         }
-        case (State::Release): {
+        case (EnvelopeState::Release): {
             envelope_level_ -= release_rate_;
             if (envelope_level_ <= 0.0) {
                 envelope_level_ = 0.0;
-                state_ = State::Off;
+                state_ = EnvelopeState::Off;
             }
             break;
         }

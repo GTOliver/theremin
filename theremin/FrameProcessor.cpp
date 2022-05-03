@@ -12,10 +12,11 @@ std::optional<ThereMessage> FrameProcessor::process(const TrackingFrame& frame)
 
     double mm_to_m = 0.001;
     double level = level_calculator_.calculate(frame.left->y * mm_to_m);
+    bool is_off = level == 0.0;
 
     auto [frequency, note_changed] = frequency_calculator_.calculate(frame.right->z * mm_to_m * -1.0);
 
-    return ThereMessage{false, note_changed, level, frequency};
+    return ThereMessage{is_off, note_changed, level, frequency};
 }
 
 void FrameProcessor::set_level_physical_bounds(Bounds bounds)
@@ -23,9 +24,9 @@ void FrameProcessor::set_level_physical_bounds(Bounds bounds)
     level_calculator_.set_distance_bounds(std::move(bounds));
 }
 
-void FrameProcessor::set_max_level(double max)
+void FrameProcessor::set_level_bounds(Bounds bounds)
 {
-    level_calculator_.set_max_level(max);
+    level_calculator_.set_level_bounds(bounds);
 }
 
 void FrameProcessor::set_frequency_physical_range(double range)

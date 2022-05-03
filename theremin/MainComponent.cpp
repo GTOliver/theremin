@@ -10,15 +10,25 @@ MainComponent::MainComponent()
 {
     tracker_.set_callback([this](TrackingFrame frame) { tracking_callback(frame); });
 
+    double vol_absolute_min = 0.0;
+    double vol_absolute_max = 1.0;
+    double vol_initial_min = 0.0;
+    double vol_initial_max = 0.5;
+
+    double freq_absolute_min = 8.0;
+    double freq_absolute_max = 10000.0;
+    double freq_initial_min = 440.0;
+    double freq_initial_max = 1760.0;
+
+    double adsr_attack = 100.0;
+    double adsr_decay = 200.0;
+    double adsr_sustain = 0.8;
+    double adsr_release = 200.0;
+
     addAndMakeVisible(live_level_label_);
     live_level_label_.setText("Level", juce::dontSendNotification);
     addAndMakeVisible(live_level_slider_);
     live_level_slider_.setRange(0.0, 0.2);
-
-    double freq_absolute_min = 0.0;
-    double freq_absolute_max = 10000.0;
-    double freq_initial_min = 440.0;
-    double freq_initial_max = 1760.0;
 
     addAndMakeVisible(live_frequency_label_);
     live_frequency_label_.setText("Frequency", juce::dontSendNotification);
@@ -26,12 +36,19 @@ MainComponent::MainComponent()
     live_frequency_slider_.setRange(freq_initial_min, freq_initial_max);
     live_frequency_slider_.setSkewFactorFromMidPoint(1000.0);
 
-    addAndMakeVisible(volume_label_);
-    volume_label_.setText("Volume", juce::dontSendNotification);
-    addAndMakeVisible(volume_slider_);
-    volume_slider_.setRange(0.0, 0.5);
-    volume_slider_.onValueChange = [this]() { on_volume_slider_changed(); };
-    volume_slider_.setValue(0.2);
+    addAndMakeVisible(volume_min_label_);
+    volume_min_label_.setText("Min Volume", juce::dontSendNotification);
+    addAndMakeVisible(volume_min_slider_);
+    volume_min_slider_.setRange(vol_absolute_min, vol_initial_max);
+    volume_min_slider_.onValueChange = [this]() { on_volume_slider_changed(); };
+    volume_min_slider_.setValue(vol_initial_min, juce::dontSendNotification);
+
+    addAndMakeVisible(volume_max_label_);
+    volume_max_label_.setText("Max Volume", juce::dontSendNotification);
+    addAndMakeVisible(volume_max_slider_);
+    volume_max_slider_.setRange(vol_initial_min, vol_absolute_max);
+    volume_max_slider_.onValueChange = [this]() { on_volume_slider_changed(); };
+    volume_max_slider_.setValue(vol_initial_max);
 
     addAndMakeVisible(volume_min_distance_label_);
     volume_min_distance_label_.setText("Volume Min Distance (m)", juce::dontSendNotification);
@@ -90,11 +107,6 @@ MainComponent::MainComponent()
     snapping_box_.onChange = [this]() { on_snapping_changed(); };
     snapping_box_.setSelectedId(1);
 
-    double adsr_attack = 100.0;
-    double adsr_decay = 200.0;
-    double adsr_sustain = 0.8;
-    double adsr_release = 200.0;
-
     addAndMakeVisible(adsr_attack_label_);
     adsr_attack_label_.setText("Attack", juce::dontSendNotification);
     adsr_attack_label_.attachToComponent(&adsr_attack_slider_, true);
@@ -150,8 +162,10 @@ void MainComponent::resized()
     live_frequency_label_.setBounds(slider_bounds.getX(), 70, slider_bounds.getWidth(), 20);
     live_frequency_slider_.setBounds(slider_bounds.getX(), 100, slider_bounds.getWidth(), 20);
 
-    volume_label_.setBounds(slider_bounds.getX(), 130, slider_bounds.getWidth(), 20);
-    volume_slider_.setBounds(slider_bounds.getX(), 160, slider_bounds.getWidth(), 20);
+    volume_min_label_.setBounds(slider_bounds.getX(), 130, half_width, 20);
+    volume_min_slider_.setBounds(slider_bounds.getX(), 160, half_width, 20);
+    volume_max_label_.setBounds(rhs_x, 130, half_width, 20);
+    volume_max_slider_.setBounds(rhs_x, 160, half_width, 20);
 
     volume_min_distance_label_.setBounds(slider_bounds.getX(), 190, half_width, 20);
     volume_min_distance_slider_.setBounds(slider_bounds.getX(), 220, half_width, 20);
@@ -227,8 +241,8 @@ void MainComponent::on_freq_range_slider_changed()
 
 void MainComponent::on_volume_slider_changed()
 {
-    live_level_slider_.setRange(0.0, volume_slider_.getValue());
-    frame_processor_.set_max_level(volume_slider_.getValue());
+    live_level_slider_.setRange(volume_min_slider_.getMinimum(), volume_max_slider_.getValue());
+    frame_processor_.set_level_bounds(Bounds(volume_min_slider_.getValue(), volume_max_slider_.getValue()));
     repaint();
 }
 

@@ -18,7 +18,7 @@ public:
 
     void set_level_physical_bounds(Bounds bounds);
 
-    void set_max_level(double max);
+    void set_level_bounds(Bounds bounds);
 
     void set_frequency_physical_range(double range);
 

@@ -19,7 +19,7 @@ public:
     void set_release(double release);
 
 private:
-    enum class State
+    enum class EnvelopeState
     {
         Attack,
         Decay,
@@ -45,8 +45,12 @@ private:
     double sample_rate_{0.0};
 
     double level_{0.0};
+    double target_level_{0.0};
 
-    State state_{State::Off};
+    double level_change_rate_{0.0};
+    double level_ramp_time_ms{10.0};
+
+    EnvelopeState state_{EnvelopeState::Off};
     double envelope_level_{0.0};
 
     double phase_change_per_sample_{0.0};

@@ -58,8 +58,10 @@ private:
     juce::Label live_frequency_label_;
     juce::Slider live_frequency_slider_;
 
-    juce::Label volume_label_;
-    juce::Slider volume_slider_;
+    juce::Label volume_min_label_;
+    juce::Slider volume_min_slider_;
+    juce::Label volume_max_label_;
+    juce::Slider volume_max_slider_;
 
     juce::Label volume_min_distance_label_;
     juce::Slider volume_min_distance_slider_;
