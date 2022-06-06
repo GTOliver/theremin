@@ -16,13 +16,31 @@ std::pair<double, bool> FrequencyCalculator::calculate(double position)
     std::pair<double, int> freq_and_note_number{0.0, 0};
     switch (snapping_mode_) {
         case (SnappingMode::Chromatic):
-            freq_and_note_number = snap_to_chromatic(freq);
+            freq_and_note_number = snap_to_chromatic(12, freq);
+            break;
+        case (SnappingMode::Chromatic17):
+            freq_and_note_number = snap_to_chromatic(17, freq);
             break;
         case (SnappingMode::Pentatonic):
-            freq_and_note_number = snap_to_scale(pentatonic_major_scale_, freq);
+            freq_and_note_number = snap_to_scale(12, pentatonic_12_, freq);
             break;
         case (SnappingMode::Major):
-            freq_and_note_number = snap_to_scale(major_scale_, freq);
+            freq_and_note_number = snap_to_scale(12, major_12_, freq);
+            break;
+        case (SnappingMode::NoneWithChromaticEnvelope):
+            freq_and_note_number = {freq, snap_to_chromatic(12, freq).second};
+            break;
+        case (SnappingMode::Major17):
+            freq_and_note_number = snap_to_scale(17, major_17_, freq);
+            break;
+        case (SnappingMode::Pentatonic17):
+            freq_and_note_number = snap_to_scale(17, pentatonic_17_, freq);
+            break;
+        case (SnappingMode::Pentatonic11):
+            freq_and_note_number = snap_to_scale(11, pentatonic_11_, freq);
+            break;
+        case (SnappingMode::Pentatonic14):
+            freq_and_note_number = snap_to_scale(14, pentatonic_14_, freq);
             break;
         default:
             freq_and_note_number.first = freq;
@@ -56,6 +74,61 @@ void FrequencyCalculator::set_snapping_mode(SnappingMode mode)
     snapping_mode_ = mode;
 }
 
+std::vector<int> FrequencyCalculator::calculate_major_scale(int large, int small)
+{
+    return {0,
+            large,
+            2 * large,
+            2 * large + small,
+            3 * large + small,
+            4 * large + small,
+            5 * large + small};
+}
+
+std::vector<int> FrequencyCalculator::calculate_pentatonic_major_scale(int large, int small)
+{
+    return {0, small, 2 * small, 2 * small + large, 3 * small + large};
+}
+
+std::pair<double, int> FrequencyCalculator::snap_to_scale(int n_notes, const std::vector<int>& scale, double freq) const
+{
+    {
+        auto n = freq_to_note_number(n_notes, freq);
+        auto rounded_n = std::round(n);
+
+        int octave = static_cast<int>(rounded_n) / n_notes;
+        int n_mod_N = static_cast<int>(rounded_n) % n_notes;
+        while (n_mod_N < 0) {
+            --octave;
+            n_mod_N += n_notes;
+        }
+
+        for (auto i = 0; i < scale.size(); ++i) {
+            const auto current = scale[i];
+            auto next = i == scale.size() - 1 ? n_notes : scale[i + 1];
+
+            if (current == n_mod_N) {
+                break;
+            }
+
+            if (current < n_mod_N && n_mod_N < next) {
+                auto delta = std::fmod(n, static_cast<double>(n_notes));
+                while (delta < 0) {
+                    delta += static_cast<double>(n_notes);
+                }
+                if ((delta - current) <= (next - delta)) {
+                    rounded_n = static_cast<double>(octave * n_notes + current);
+                } else {
+                    rounded_n = static_cast<double>(octave * n_notes + next);
+                }
+                break;
+            }
+        }
+
+        return {note_number_to_freq(n_notes, rounded_n), static_cast<int>(rounded_n)};
+    }
+}
+
 double FrequencyCalculator::calculate_scaled_frequency(double progress) const
 {
     switch (scaling_method_) {
@@ -80,57 +153,20 @@ double FrequencyCalculator::calculate_scaled_frequency(double progress) const
     }
 }
 
-double FrequencyCalculator::freq_to_note_number(double freq) const
+double FrequencyCalculator::freq_to_note_number(int n_notes, double freq) const
 {
-    return static_cast<double>(snapping_N_) * std::log2(freq / snapping_f0_);
+    return static_cast<double>(n_notes) * std::log2(freq / snapping_f0_);
 }
 
-double FrequencyCalculator::note_number_to_freq(double n) const
+double FrequencyCalculator::note_number_to_freq(int n_notes, double n) const
 {
-    return snapping_f0_ * std::pow(2.0, n / static_cast<double>(snapping_N_));
+    return snapping_f0_ * std::pow(2.0, n / static_cast<double>(n_notes));
 }
 
-std::pair<double, int> FrequencyCalculator::snap_to_chromatic(double freq) const
+std::pair<double, int> FrequencyCalculator::snap_to_chromatic(int n_notes, double freq) const
 {
-    auto n = freq_to_note_number(freq);
+    auto n = freq_to_note_number(n_notes, freq);
     auto rounded = std::round(n);
 
-    return {note_number_to_freq(rounded), static_cast<int>(rounded)};
-}
-
-std::pair<double, int> FrequencyCalculator::snap_to_scale(const std::vector<int>& scale, double freq) const
-{
-    auto n = freq_to_note_number(freq);
-    auto rounded_n = std::round(n);
-
-    int octave = static_cast<int>(rounded_n) / snapping_N_;
-    int n_mod_N = static_cast<int>(rounded_n) % snapping_N_;
-    while (n_mod_N < 0) {
-        --octave;
-        n_mod_N += snapping_N_;
-    }
-
-    for (auto i = 0; i < scale.size(); ++i) {
-        const auto current = scale[i];
-        auto next = i == scale.size() - 1 ? snapping_N_ : scale[i + 1];
-
-        if (current == n_mod_N) {
-            break;
-        }
-
-        if (current < n_mod_N && n_mod_N < next) {
-            auto delta = std::fmod(n, static_cast<double>(snapping_N_));
-            while (delta < 0) {
-                delta += static_cast<double>(snapping_N_);
-            }
-            if ((delta - current) <= (next - delta)) {
-                rounded_n = static_cast<double>(octave * snapping_N_ + current);
-            } else {
-                rounded_n = static_cast<double>(octave * snapping_N_ + next);
-            }
-            break;
-        }
-    }
-
-    return {note_number_to_freq(rounded_n), static_cast<int>(rounded_n)};
+    return {note_number_to_freq(n_notes, rounded), static_cast<int>(rounded)};
 }

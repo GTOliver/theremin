@@ -103,7 +103,9 @@ MainComponent::MainComponent()
     snapping_label_.attachToComponent(&snapping_box_, true);
 
     addAndMakeVisible(snapping_box_);
-    snapping_box_.addItemList({"None", "Chromatic", "Pentatonic", "Major"}, 1);
+    snapping_box_.addItemList({"None", "Chromatic", "Pentatonic", "Major", "Chromatic Envelope",
+                               "17-tone Chromatic", "17-tone Major", "17-tone Pentatonic", "11-tone Pentatonic", "14-tone Pentatonic"},
+                              1);
     snapping_box_.onChange = [this]() { on_snapping_changed(); };
     snapping_box_.setSelectedId(1);
 
@@ -325,6 +327,24 @@ void MainComponent::on_snapping_changed()
             break;
         case (4):
             mode = SnappingMode::Major;
+            break;
+        case (5):
+            mode = SnappingMode::NoneWithChromaticEnvelope;
+            break;
+        case (6):
+            mode = SnappingMode::Chromatic17;
+            break;
+        case (7):
+            mode = SnappingMode::Major17;
+            break;
+        case (8):
+            mode = SnappingMode::Pentatonic17;
+            break;
+        case (9):
+            mode = SnappingMode::Pentatonic11;
+            break;
+        case (10):
+            mode = SnappingMode::Pentatonic14;
             break;
         default:
             // This should never happen

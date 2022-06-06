@@ -19,16 +19,21 @@ There are 4 frequency-scaling algorithms available:
 - **String**: The frequency changes as if a string were being shortened
 - **Keyboard**: Distance between semitones is a constant
 - **Theremin**: The frequency changes according to the resonant frequency of an RLC circuit, where the capacitance is
-  proportional to distance
+  inversely proportional to distance
 
-There are 4 snapping modes available. These can be used to snap to scales (based on A440):
+There are several snapping modes available. These can be used to snap to scales (based on A440):
 
 - **None**: No snapping - all frequencies can be played
 - **Chromatic**: Snap to notes in the chromatic scale
 - **Major**: Snap to notes in the A major scale
 - **Pentatonic**: Snap to notes in the A major pentatonic scale
+- **Chromatic Envelope**: Do not perform any snapping, but trigger the volume envelope whenever
+  a note would change in the chromatic scale
 
-There are also parameters to change an ADSR filter. These parameters affect the volume of the note. If snapping is
+There are also 17-tone versions of the Major, Pentatonic and Chromatic scales, as well as
+11 and 14-tone versions of the Pentatonic scale.
+
+There are also parameters to change an ADSR envelope. These parameters affect the volume of the note. If snapping is
 enabled, the attack stage of the envelope is re-triggered when changing notes.
 
 ## Requirements
