@@ -69,10 +69,10 @@ double FrequencyCalculator::calculate_scaled_frequency(double progress) const
             return frequency_.min() / (1.0 - progress * (1.0 - (frequency_.min() / frequency_.max())));
         }
         case (ScalingMethod::Theremin): {
-            double ratio = frequency_.min() / frequency_.max();
-            double b = 1.0 / (1.0 - (ratio * ratio));
-            double a = frequency_.min() * std::sqrt(b);
-            return a * std::pow(b - progress, -0.5);
+            double frequency_range = frequency_.max() - frequency_.min();
+            double distance_scaling = std::sqrt(1.0 - progress);
+
+            return frequency_.max() - frequency_range * distance_scaling;
         }
         default:
             // This should never happen
