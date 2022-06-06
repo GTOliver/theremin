@@ -54,12 +54,15 @@ private:
     double target_level_{0.0};
 
     double level_change_rate_{0.0};
-    double level_ramp_time_ms{10.0};
+    double level_ramp_time_ms_{10.0};
 
     EnvelopeState state_{EnvelopeState::Off};
     double envelope_level_{0.0};
 
     double phase_change_per_sample_{0.0};
+    double phase_change_per_sample_target_{0.0};
+    double phase_change_ramp_time_ms_{5.0};
+    double phase_change_rate_{0.0};
 
     double phase_{0.0};
 };

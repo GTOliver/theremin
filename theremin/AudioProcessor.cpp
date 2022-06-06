@@ -46,8 +46,9 @@ void AudioProcessor::process(ThereMessage message)
     }
 
     target_level_ = message.level;
-    level_change_rate_ = calculate_rate(level_ramp_time_ms) * (target_level_ - level_);
-    phase_change_per_sample_ = frequency_to_phase_change(message.frequency);
+    level_change_rate_ = calculate_rate(level_ramp_time_ms_) * (target_level_ - level_);
+    phase_change_per_sample_target_ = frequency_to_phase_change(message.frequency);
+    phase_change_rate_ = calculate_rate(phase_change_ramp_time_ms_) * (phase_change_per_sample_target_ - phase_change_per_sample_);
 }
 
 void AudioProcessor::set_attack(double attack)
@@ -103,6 +104,15 @@ float AudioProcessor::next_value()
     auto oscillator_value = std::sin(phase_);
     auto return_value = level_ * envelope_level_ * oscillator_value;
 
+    if (phase_change_rate_ != 0.0) {
+        int sign = (phase_change_per_sample_target_ >= phase_change_per_sample_) ? 1 : -1;
+        phase_change_per_sample_ += phase_change_rate_;
+        if ((phase_change_per_sample_ - phase_change_per_sample_target_) * sign > 0) {
+            phase_change_per_sample_ = phase_change_per_sample_target_;
+            phase_change_rate_ = 0.0f;
+        }
+    }
+
     phase_ += phase_change_per_sample_;
     if (phase_ > 2.0 * juce::MathConstants<double>::pi) {
         phase_ = std::fmod(phase_, 2.0 * juce::MathConstants<double>::pi);
@@ -112,6 +122,7 @@ float AudioProcessor::next_value()
         int sign = (target_level_ >= level_) ? 1 : -1;
         level_ += level_change_rate_;
         if ((level_ - target_level_) * sign > 0) {
+            level_ = target_level_;
             level_change_rate_ = 0.0;
         }
     }
