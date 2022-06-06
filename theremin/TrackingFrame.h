@@ -13,6 +13,7 @@ struct HandData
 {
     Vector3 palm_position;
     Vector3 average_finger_position;
+    double grab_strength;
 };
 
 struct TrackingFrame

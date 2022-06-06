@@ -142,6 +142,16 @@ MainComponent::MainComponent()
     addAndMakeVisible(finger_tip_button_);
     finger_tip_button_.onStateChange = [this]() { on_tip_changed(); };
 
+    addAndMakeVisible(square_blend_label_);
+    square_blend_label_.setText("Square Blend", juce::dontSendNotification);
+    addAndMakeVisible(square_blend_slider_);
+    square_blend_slider_.setRange(0.0, 1.0);
+    square_blend_slider_.onValueChange = [this]() { on_square_blend_changed(); };
+    square_blend_slider_.setValue(0.0, juce::dontSendNotification);
+
+    addAndMakeVisible(square_blend_on_grab_);
+    square_blend_on_grab_.onStateChange = [this]() { on_square_blend_on_grab_changed(); };
+
     setSize(800, 600);
 
     setAudioChannels(0, 2);
@@ -193,6 +203,10 @@ void MainComponent::resized()
     adsr_release_slider_.setBounds(rhs_x, 520, half_width, 20);
 
     finger_tip_button_.setBounds(rhs_x, 550, half_width, 20);
+
+    square_blend_label_.setBounds(slider_bounds.getX(), 460, half_width / 2, 20);
+    square_blend_slider_.setBounds(slider_bounds.getX(), 490, half_width / 2, 20);
+    square_blend_on_grab_.setBounds(slider_bounds.getX(), 550, half_width, 20);
 }
 
 void MainComponent::prepareToPlay([[maybe_unused]] int samples_per_block, double sample_rate)
@@ -221,6 +235,9 @@ void MainComponent::timerCallback()
     if (message.has_value()) {
         live_level_slider_.setValue(message->level, juce::dontSendNotification);
         live_frequency_slider_.setValue(message->frequency, juce::dontSendNotification);
+        if (square_blend_on_grab_.getToggleState()) {
+            square_blend_slider_.setValue(message->cc);
+        }
     }
 }
 
@@ -327,6 +344,18 @@ void MainComponent::on_adsr_changed()
 void MainComponent::on_tip_changed()
 {
     frame_processor_.set_use_fingers_enabled(finger_tip_button_.getToggleState());
+}
+
+void MainComponent::on_square_blend_changed()
+{
+    if (!square_blend_on_grab_.getToggleState()) {
+        audio_processor_.set_square_blend(square_blend_slider_.getValue());
+    }
+}
+
+void MainComponent::on_square_blend_on_grab_changed()
+{
+    audio_processor_.set_enable_cc(square_blend_on_grab_.getToggleState());
 }
 
 void MainComponent::update_ui(ThereMessage message)

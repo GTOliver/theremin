@@ -76,7 +76,8 @@ HandData HandTracker::process_hand(const LEAP_HAND& hand)
 
     HandData data{
             palm_position,
-            average_finger_pos};
+            average_finger_pos,
+            static_cast<double>(hand.grab_strength)};
 
     return data;
 }

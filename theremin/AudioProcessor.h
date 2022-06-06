@@ -2,6 +2,7 @@
 
 #include <juce_audio_utils/juce_audio_utils.h>
 
+#include "Oscillator.h"
 #include "ThereMessage.h"
 
 class AudioProcessor
@@ -17,6 +18,9 @@ public:
     void set_decay(double decay);
     void set_sustain(double sustain);
     void set_release(double release);
+
+    void set_enable_cc(bool enabled);
+    void set_square_blend(double amount);
 
 private:
     enum class EnvelopeState
@@ -65,4 +69,11 @@ private:
     double phase_change_rate_{0.0};
 
     double phase_{0.0};
+
+    Oscillator oscillator_;
+    std::atomic<bool> enable_cc_{false};
+
+    std::atomic<double> target_blend_{0.0};
+    double blend_ramp_time_ms_{5.0};
+    double blend_change_rate_{0.0};
 };

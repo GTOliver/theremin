@@ -50,6 +50,10 @@ private:
 
     void on_tip_changed();
 
+    void on_square_blend_changed();
+
+    void on_square_blend_on_grab_changed();
+
     void update_ui(ThereMessage message);
 
     void tracking_callback(TrackingFrame frame);
@@ -97,6 +101,10 @@ private:
     juce::Slider adsr_release_slider_;
 
     juce::ToggleButton finger_tip_button_{"Enable Fingers"};
+
+    juce::ToggleButton square_blend_on_grab_{"Blend on Grab"};
+    juce::Label square_blend_label_;
+    juce::Slider square_blend_slider_;
 
     MessageQueue messages_;
     HandTracker tracker_;

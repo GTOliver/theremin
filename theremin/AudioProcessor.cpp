@@ -49,6 +49,10 @@ void AudioProcessor::process(ThereMessage message)
     level_change_rate_ = calculate_rate(level_ramp_time_ms_) * (target_level_ - level_);
     phase_change_per_sample_target_ = frequency_to_phase_change(message.frequency);
     phase_change_rate_ = calculate_rate(phase_change_ramp_time_ms_) * (phase_change_per_sample_target_ - phase_change_per_sample_);
+
+    if (enable_cc_) {
+        set_square_blend(message.cc);
+    }
 }
 
 void AudioProcessor::set_attack(double attack)
@@ -77,6 +81,17 @@ void AudioProcessor::set_release(double release)
     release_rate_ = calculate_rate(release);
 }
 
+void AudioProcessor::set_enable_cc(bool enabled)
+{
+    enable_cc_.store(enabled);
+}
+
+void AudioProcessor::set_square_blend(double amount)
+{
+    target_blend_.store(amount);
+    blend_change_rate_ = calculate_rate(blend_ramp_time_ms_) * (target_blend_ - oscillator_.get_square_blend());
+}
+
 double AudioProcessor::calculate_rate(double duration) const
 {
     if (duration == 0.0) {
@@ -101,7 +116,8 @@ double AudioProcessor::frequency_to_phase_change(double frequency) const
 
 float AudioProcessor::next_value()
 {
-    auto oscillator_value = std::sin(phase_);
+    auto oscillator_value = oscillator_.evaluate_at(phase_);
+
     auto return_value = level_ * envelope_level_ * oscillator_value;
 
     if (phase_change_rate_ != 0.0) {
@@ -114,8 +130,9 @@ float AudioProcessor::next_value()
     }
 
     phase_ += phase_change_per_sample_;
+
     if (phase_ > 2.0 * juce::MathConstants<double>::pi) {
-        phase_ = std::fmod(phase_, 2.0 * juce::MathConstants<double>::pi);
+        phase_ -= 2.0 * juce::MathConstants<double>::pi;
     }
 
     if (level_change_rate_ != 0.0) {
@@ -125,6 +142,17 @@ float AudioProcessor::next_value()
             level_ = target_level_;
             level_change_rate_ = 0.0;
         }
+    }
+
+    if (blend_change_rate_ != 0.0) {
+        double current_blend = oscillator_.get_square_blend();
+        int sign = (target_blend_ >= current_blend) ? 1 : -1;
+        double new_blend = current_blend + blend_change_rate_;
+        if ((new_blend - target_blend_) * sign > 0) {
+            new_blend = target_blend_;
+            blend_change_rate_ = 0.0;
+        }
+        oscillator_.set_square_blend(new_blend);
     }
 
     switch (state_) {

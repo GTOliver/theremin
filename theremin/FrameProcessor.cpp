@@ -25,7 +25,7 @@ std::optional<ThereMessage> FrameProcessor::process(const TrackingFrame& frame)
 
     auto [frequency, note_changed] = frequency_calculator_.calculate(right_position.z * mm_to_m * -1.0);
 
-    return ThereMessage{false, note_changed, level, frequency};
+    return ThereMessage{false, note_changed, level, frequency, frame.left->grab_strength};
 }
 
 void FrameProcessor::set_level_physical_bounds(Bounds bounds)

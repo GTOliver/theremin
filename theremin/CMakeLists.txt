@@ -24,6 +24,8 @@ target_sources(Theremin
         FrameProcessor.cpp
         FrequencyCalculator.h
         FrequencyCalculator.cpp
+        Oscillator.h
+        Oscillator.cpp
         )
 
 target_compile_definitions(Theremin
