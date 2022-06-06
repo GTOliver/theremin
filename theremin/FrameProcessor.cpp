@@ -3,27 +3,29 @@
 std::optional<ThereMessage> FrameProcessor::process(const TrackingFrame& frame)
 {
     if (!(frame.right.has_value() && frame.left.has_value())) {
-        auto retval = currently_emitting_ ? std::optional<ThereMessage>({true}) : std::nullopt;
-        currently_emitting_ = false;
-        return retval;
+        return switch_off();
     }
-
-    currently_emitting_ = true;
 
     const auto get_position = [this](const auto& hand) {
         return use_fingers_.load() ? hand.average_finger_position : hand.palm_position;
     };
 
     const auto left_position = get_position(frame.left.value());
-    const auto right_position = get_position(frame.right.value());
 
     double mm_to_m = 0.001;
     double level = level_calculator_.calculate(left_position.y * mm_to_m);
-    bool is_off = level == 0.0;
+
+    if (level == 0.0) {
+        return switch_off();
+    }
+
+    currently_emitting_ = true;
+
+    const auto right_position = get_position(frame.right.value());
 
     auto [frequency, note_changed] = frequency_calculator_.calculate(right_position.z * mm_to_m * -1.0);
 
-    return ThereMessage{is_off, note_changed, level, frequency};
+    return ThereMessage{false, note_changed, level, frequency};
 }
 
 void FrameProcessor::set_level_physical_bounds(Bounds bounds)
@@ -59,4 +61,11 @@ void FrameProcessor::set_snapping_mode(SnappingMode mode)
 void FrameProcessor::set_use_fingers_enabled(bool enabled)
 {
     use_fingers_.store(enabled);
+}
+
+std::optional<ThereMessage> FrameProcessor::switch_off()
+{
+    const auto retval = currently_emitting_ ? std::optional<ThereMessage>({true}) : std::nullopt;
+    currently_emitting_ = false;
+    return retval;
 }

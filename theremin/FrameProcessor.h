@@ -6,11 +6,11 @@
 
 #include "Bounds.h"
 
-#include "TrackingFrame.h"
 #include "ThereMessage.h"
+#include "TrackingFrame.h"
 
-#include "LevelCalculator.h"
 #include "FrequencyCalculator.h"
+#include "LevelCalculator.h"
 
 class FrameProcessor
 {
@@ -32,6 +32,8 @@ public:
     void set_use_fingers_enabled(bool enabled);
 
 private:
+    std::optional<ThereMessage> switch_off();
+
     bool currently_emitting_{false};
     std::atomic<bool> use_fingers_{false};
 
