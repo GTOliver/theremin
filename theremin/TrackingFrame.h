@@ -2,11 +2,17 @@
 
 #include <optional>
 
-struct HandData
+struct Vector3
 {
     double x;
     double y;
     double z;
+};
+
+struct HandData
+{
+    Vector3 palm_position;
+    Vector3 average_finger_position;
 };
 
 struct TrackingFrame

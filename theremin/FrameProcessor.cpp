@@ -10,11 +10,18 @@ std::optional<ThereMessage> FrameProcessor::process(const TrackingFrame& frame)
 
     currently_emitting_ = true;
 
+    const auto get_position = [this](const auto& hand) {
+        return use_fingers_.load() ? hand.average_finger_position : hand.palm_position;
+    };
+
+    const auto left_position = get_position(frame.left.value());
+    const auto right_position = get_position(frame.right.value());
+
     double mm_to_m = 0.001;
-    double level = level_calculator_.calculate(frame.left->y * mm_to_m);
+    double level = level_calculator_.calculate(left_position.y * mm_to_m);
     bool is_off = level == 0.0;
 
-    auto [frequency, note_changed] = frequency_calculator_.calculate(frame.right->z * mm_to_m * -1.0);
+    auto [frequency, note_changed] = frequency_calculator_.calculate(right_position.z * mm_to_m * -1.0);
 
     return ThereMessage{is_off, note_changed, level, frequency};
 }
@@ -47,4 +54,9 @@ void FrameProcessor::set_frequency_scaling(ScalingMethod scaling)
 void FrameProcessor::set_snapping_mode(SnappingMode mode)
 {
     frequency_calculator_.set_snapping_mode(mode);
+}
+
+void FrameProcessor::set_use_fingers_enabled(bool enabled)
+{
+    use_fingers_.store(enabled);
 }

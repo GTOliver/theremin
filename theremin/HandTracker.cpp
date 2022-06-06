@@ -1,5 +1,8 @@
 #include "HandTracker.h"
 
+#include <array>
+#include <numeric>
+
 HandTracker::HandTracker()
         : connection_(),
           callback_mtx_{},
@@ -52,11 +55,28 @@ TrackingFrame HandTracker::process_tracking_event(const LEAP_TRACKING_EVENT* eve
 
 HandData HandTracker::process_hand(const LEAP_HAND& hand)
 {
-    const auto& position = hand.palm.position;
+    const auto& palm_data = hand.palm.position;
 
-    HandData data{};
-    data.x = position.x;
-    data.y = position.y;
-    data.z = position.z;
+    Vector3 palm_position = {palm_data.x, palm_data.y, palm_data.z};
+
+    const auto get_tracked_joint = [](const auto digit) { return digit.distal.next_joint; };
+
+    constexpr size_t N = 3;
+    std::array<LEAP_VECTOR, N> finger_positions{
+            get_tracked_joint(hand.index),
+            get_tracked_joint(hand.middle),
+            get_tracked_joint(hand.ring)};
+
+    LEAP_VECTOR finger_pos_sum = std::accumulate(finger_positions.begin(), finger_positions.end(), LEAP_VECTOR{0.0, 0.0, 0.0},
+                                                 [](const auto& v1, const auto& v2) -> LEAP_VECTOR { return {v1.x + v2.x, v1.y + v2.y, v1.z + v2.z}; });
+    Vector3 average_finger_pos = {
+            finger_pos_sum.x / static_cast<double>(N),
+            finger_pos_sum.y / static_cast<double>(N),
+            finger_pos_sum.z / static_cast<double>(N)};
+
+    HandData data{
+            palm_position,
+            average_finger_pos};
+
     return data;
 }

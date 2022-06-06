@@ -1,5 +1,6 @@
 #pragma once
 
+#include <atomic>
 #include <optional>
 #include <utility>
 
@@ -28,8 +29,11 @@ public:
 
     void set_snapping_mode(SnappingMode mode);
 
+    void set_use_fingers_enabled(bool enabled);
+
 private:
     bool currently_emitting_{false};
+    std::atomic<bool> use_fingers_{false};
 
     LevelCalculator level_calculator_;
     FrequencyCalculator frequency_calculator_;

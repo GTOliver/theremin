@@ -48,6 +48,8 @@ private:
 
     void on_adsr_changed();
 
+    void on_tip_changed();
+
     void update_ui(ThereMessage message);
 
     void tracking_callback(TrackingFrame frame);
@@ -93,6 +95,8 @@ private:
 
     juce::Label adsr_release_label_;
     juce::Slider adsr_release_slider_;
+
+    juce::ToggleButton finger_tip_button_{"Enable Fingers"};
 
     MessageQueue messages_;
     HandTracker tracker_;

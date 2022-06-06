@@ -139,6 +139,9 @@ MainComponent::MainComponent()
     adsr_release_slider_.onValueChange = [this]() { on_adsr_changed(); };
     adsr_release_slider_.setValue(adsr_release);
 
+    addAndMakeVisible(finger_tip_button_);
+    finger_tip_button_.onStateChange = [this]() { on_tip_changed(); };
+
     setSize(800, 600);
 
     setAudioChannels(0, 2);
@@ -185,9 +188,11 @@ void MainComponent::resized()
     snapping_box_.setBounds(rhs_x, 400, half_width, 20);
 
     adsr_attack_slider_.setBounds(rhs_x, 430, half_width, 20);
-    adsr_decay_slider_.setBounds(rhs_x, 470, half_width, 20);
-    adsr_sustain_slider_.setBounds(rhs_x, 500, half_width, 20);
-    adsr_release_slider_.setBounds(rhs_x, 530, half_width, 20);
+    adsr_decay_slider_.setBounds(rhs_x, 460, half_width, 20);
+    adsr_sustain_slider_.setBounds(rhs_x, 490, half_width, 20);
+    adsr_release_slider_.setBounds(rhs_x, 520, half_width, 20);
+
+    finger_tip_button_.setBounds(rhs_x, 550, half_width, 20);
 }
 
 void MainComponent::prepareToPlay([[maybe_unused]] int samples_per_block, double sample_rate)
@@ -317,6 +322,11 @@ void MainComponent::on_adsr_changed()
     audio_processor_.set_decay(adsr_decay_slider_.getValue());
     audio_processor_.set_sustain(adsr_sustain_slider_.getValue());
     audio_processor_.set_release(adsr_release_slider_.getValue());
+}
+
+void MainComponent::on_tip_changed()
+{
+    frame_processor_.set_use_fingers_enabled(finger_tip_button_.getToggleState());
 }
 
 void MainComponent::update_ui(ThereMessage message)
