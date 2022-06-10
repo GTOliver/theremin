@@ -1,6 +1,8 @@
 #include "ConnectionImpl.h"
 #include "Exception.h"
 
+#include <algorithm>
+
 namespace lpp
 {
 
